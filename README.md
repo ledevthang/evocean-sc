@@ -1,2 +1,0 @@
-# evocean-sc
-evocean-sc

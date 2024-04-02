@@ -17,8 +17,8 @@ pub mod marketplace {
         instructions::init_master::process(ctx, fee)
     }
 
-    pub fn list(ctx: Context<List>, token_id: String, price: u64) -> Result<()> {
-        instructions::list::process(ctx, token_id, price)
+    pub fn list(ctx: Context<List>, price: u64) -> Result<()> {
+        instructions::list::process(ctx, price)
     }
 
     pub fn buy(_ctx: Context<Buy>) -> Result<()> {

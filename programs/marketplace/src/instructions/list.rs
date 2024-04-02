@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token;
 use crate::listing::Listing;
 
-pub fn process(ctx: Context<List>,_token_id:String, price: u64) -> Result<()> {
+pub fn process(ctx: Context<List>, price: u64) -> Result<()> {
     let listing_account = &mut ctx.accounts.listing_account;
 
     let cpi_ctx = CpiContext::new(
@@ -26,19 +26,17 @@ pub fn process(ctx: Context<List>,_token_id:String, price: u64) -> Result<()> {
 }
 
 #[derive(Accounts)]
-#[instruction(token_id: String)]
 pub struct List<'info> {
-    #[account(zero)]
     pub token_mint: Account<'info, token::Mint>,
 
     #[account(
         init,
         payer = seller,
-        space = 256,
+        space = 8 + std::mem::size_of::<Listing>(),
         seeds = [
             b"listing_account_",
             seller.key().as_ref(),
-            token_id.as_bytes(),
+            token_mint.key().as_ref(),
         ],
         bump
     )]

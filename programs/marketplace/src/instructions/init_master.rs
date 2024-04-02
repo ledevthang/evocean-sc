@@ -15,7 +15,7 @@ pub struct InitMaster<'info> {
     pub master_account: Account<'info, Master>,
 
     #[account(mut)]
-    pub signer: Signer<'info>, // admin
+    pub signer: Signer<'info>,
 
     pub system_program: Program<'info, System>,
 }

@@ -1,6 +1,6 @@
+use crate::listing::Listing;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
-use crate::listing::Listing;
 
 pub fn process(ctx: Context<List>, price: u64) -> Result<()> {
     let listing_account = &mut ctx.accounts.listing_account;
@@ -35,7 +35,6 @@ pub struct List<'info> {
         space = 8 + std::mem::size_of::<Listing>(),
         seeds = [
             b"listing_account_",
-            seller.key().as_ref(),
             token_mint.key().as_ref(),
         ],
         bump
@@ -48,12 +47,12 @@ pub struct List<'info> {
     #[account(
         init,
         seeds = [
-            b"market_token_account_", 
+            b"market_token_account_",
             token_mint.key().as_ref()
         ],
         payer = seller,
         bump,
-        token::mint = token_mint, 
+        token::mint = token_mint,
         token::authority = market_token_account
     )]
     pub market_token_account: Account<'info, token::TokenAccount>,

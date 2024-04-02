@@ -7,7 +7,7 @@ pub mod state;
 use instructions::{buy::*, init_master::*, list::*};
 use state::*;
 
-declare_id!("JBTvPecuG2GQTShKFVk48dq3pPMpeLAURmQXuw8Rm4os");
+declare_id!("GrWK5uLfnVwhWDaLpFVFgwF8qZMzBYfKsjsuP1vbPApW");
 
 #[program]
 pub mod marketplace {
@@ -21,7 +21,7 @@ pub mod marketplace {
         instructions::list::process(ctx, price)
     }
 
-    pub fn buy(_ctx: Context<Buy>) -> Result<()> {
-        Ok(())
+    pub fn buy(ctx: Context<Buy>) -> Result<()> {
+        instructions::buy::process(ctx)
     }
 }

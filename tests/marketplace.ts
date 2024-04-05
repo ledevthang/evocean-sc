@@ -154,6 +154,26 @@ describe("marketplace", () => {
       ).amount.toString()
     ).equal("1");
 
+    // listing again
+    const tx2 = await program.methods
+      .list(new BN(10 * anchor.web3.LAMPORTS_PER_SOL))
+      .accounts({
+        listingAccount,
+        marketTokenAccount,
+        seller: buyer.publicKey,
+        tokenMint,
+        tokenProgram: spl.TOKEN_PROGRAM_ID,
+        userTokenAccount: userTokenAccount.address,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([buyer])
+      .rpc();
+
+    const listing = await program.account.listing.fetch(listingAccount);
+
+    expect(listing.price.toNumber()).equal(10 * anchor.web3.LAMPORTS_PER_SOL);
+
     console.log("signature: ", tx);
+    console.log("signature: ", tx2);
   });
 });

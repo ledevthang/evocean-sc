@@ -45,7 +45,7 @@ pub struct List<'info> {
     pub seller: Signer<'info>,
 
     #[account(
-        init,
+        init_if_needed,
         seeds = [
             b"market_token_account_",
             token_mint.key().as_ref()

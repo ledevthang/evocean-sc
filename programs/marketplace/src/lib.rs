@@ -7,7 +7,9 @@ pub mod state;
 use instructions::{buy::*, init_master::*, list::*};
 use state::*;
 
-declare_id!("GrWK5uLfnVwhWDaLpFVFgwF8qZMzBYfKsjsuP1vbPApW");
+//58PaLbpXsJbiNdJhebM1Prx2o9XecQ9ftXvwrJ8Q2BsL
+
+declare_id!("58PaLbpXsJbiNdJhebM1Prx2o9XecQ9ftXvwrJ8Q2BsL");
 
 #[program]
 pub mod marketplace {

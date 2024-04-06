@@ -22,7 +22,7 @@ describe("marketplace", () => {
 
   const [masterAccount] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from("master_account_")],
-    program.programId
+    program.programId,
   );
 
   it("init_master", async () => {
@@ -43,7 +43,7 @@ describe("marketplace", () => {
     expect(master.initialized).equal(true);
     expect(master.marketFee).equal(3);
     expect(master.authority.toBase58()).equal(
-      aliceAccount.publicKey.toBase58()
+      aliceAccount.publicKey.toBase58(),
     );
   });
 
@@ -51,17 +51,17 @@ describe("marketplace", () => {
     // create token mint
     const { tokenMint, tokenAccount } = await mintANftForWallet(
       aliceAccount.payer,
-      provider.connection
+      provider.connection,
     );
 
     const [listingAccount] = anchor.web3.PublicKey.findProgramAddressSync(
       [Buffer.from("listing_account_"), tokenMint.toBuffer()],
-      program.programId
+      program.programId,
     );
 
     const [marketTokenAccount] = anchor.web3.PublicKey.findProgramAddressSync(
       [Buffer.from("market_token_account_"), tokenMint.toBuffer()],
-      program.programId
+      program.programId,
     );
 
     const tx = await program.methods
@@ -93,21 +93,21 @@ describe("marketplace", () => {
 
     const { tokenAccount, tokenMint } = await mintANftForWallet(
       seller,
-      provider.connection
+      provider.connection,
     );
 
     const [listingAccount] = anchor.web3.PublicKey.findProgramAddressSync(
       [Buffer.from("listing_account_"), tokenMint.toBuffer()],
-      program.programId
+      program.programId,
     );
 
     const [marketTokenAccount] = anchor.web3.PublicKey.findProgramAddressSync(
       [Buffer.from("market_token_account_"), tokenMint.toBuffer()],
-      program.programId
+      program.programId,
     );
 
     await program.methods
-      .list(new BN(6 * anchor.web3.LAMPORTS_PER_SOL))
+      .list(new BN(1 * anchor.web3.LAMPORTS_PER_SOL))
       .accounts({
         listingAccount,
         marketTokenAccount,
@@ -124,10 +124,10 @@ describe("marketplace", () => {
       provider.connection,
       buyer,
       tokenMint,
-      buyer.publicKey
+      buyer.publicKey,
     );
 
-    const tx = await program.methods
+    const tx1 = await program.methods
       .buy()
       .accounts({
         buyer: buyer.publicKey,
@@ -142,38 +142,68 @@ describe("marketplace", () => {
       .signers([buyer])
       .rpc();
 
-    expect(
-      await provider.connection.getBalance(
-        new anchor.web3.PublicKey(listingAccount.toBuffer())
-      )
-    ).equal(0);
+    let listing = await program.account.listing.fetch(listingAccount);
 
-    expect(
-      (
-        await spl.getAccount(provider.connection, userTokenAccount.address)
-      ).amount.toString()
-    ).equal("1");
+    expect(listing.price.toNumber()).equal(1 * anchor.web3.LAMPORTS_PER_SOL);
+    expect(listing.seller.toBase58()).equal(buyer.publicKey.toBase58());
+    expect(listing.tokenMint.toBase58()).equal(tokenMint.toBase58());
 
-    // listing again
+    console.log("signature: ", tx1);
+
+    // seller buy again
+    const userTokenAccount2 = await spl.getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      seller,
+      tokenMint,
+      seller.publicKey,
+    );
+
     const tx2 = await program.methods
-      .list(new BN(10 * anchor.web3.LAMPORTS_PER_SOL))
+      .buy()
       .accounts({
+        buyer: seller.publicKey,
+        seller: buyer.publicKey,
         listingAccount,
         marketTokenAccount,
-        seller: buyer.publicKey,
+        userTokenAccount: userTokenAccount2.address,
         tokenMint,
-        tokenProgram: spl.TOKEN_PROGRAM_ID,
-        userTokenAccount: userTokenAccount.address,
         systemProgram: anchor.web3.SystemProgram.programId,
+        tokenProgram: spl.TOKEN_PROGRAM_ID,
       })
-      .signers([buyer])
+      .signers([seller])
       .rpc();
 
-    const listing = await program.account.listing.fetch(listingAccount);
+    console.log("tx2: ", tx2);
 
-    expect(listing.price.toNumber()).equal(10 * anchor.web3.LAMPORTS_PER_SOL);
+    listing = await program.account.listing.fetch(listingAccount);
+    expect(listing.seller.toBase58()).equal(seller.publicKey.toBase58());
 
-    console.log("signature: ", tx);
-    console.log("signature: ", tx2);
+    // expect(
+    //   (
+    //     await spl.getAccount(provider.connection, userTokenAccount.address)
+    //   ).amount.toString(),
+    // ).equal("1");
+
+    // listing again
+    // const tx2 = await program.methods
+    //   .list(new BN(10 * anchor.web3.LAMPORTS_PER_SOL))
+    //   .accounts({
+    //     listingAccount,
+    //     marketTokenAccount,
+    //     seller: buyer.publicKey,
+    //     tokenMint,
+    //     tokenProgram: spl.TOKEN_PROGRAM_ID,
+    //     userTokenAccount: userTokenAccount.address,
+    //     systemProgram: anchor.web3.SystemProgram.programId,
+    //   })
+    //   .signers([buyer])
+    //   .rpc();
+
+    // const listing = await program.account.listing.fetch(listingAccount);
+
+    // expect(listing.price.toNumber()).equal(10 * anchor.web3.LAMPORTS_PER_SOL);
+
+    // console.log("signature: ", tx);
+    // console.log("signature: ", tx2);
   });
 });

@@ -5,7 +5,6 @@ use crate::listing::Listing;
 
 pub fn process(ctx: Context<Buy>) -> Result<()> {
     let listing_account = &mut ctx.accounts.listing_account;
-    let seller_account = ctx.accounts.seller.to_account_info();
 
     let cpi_transfer_sol_ctx = CpiContext::new(
         ctx.accounts.system_program.to_account_info(),
@@ -17,24 +16,7 @@ pub fn process(ctx: Context<Buy>) -> Result<()> {
 
     system_program::transfer(cpi_transfer_sol_ctx, listing_account.price)?;
 
-    let bump = ctx.bumps.market_token_account;
-    let token_mint_key = ctx.accounts.token_mint.key();
-    let seed = &[b"market_token_account_", token_mint_key.as_ref(), &[bump]];
-    let signer = &[&seed[..]];
-
-    let cpi_transfer_token_ctx = CpiContext::new_with_signer(
-        ctx.accounts.token_program.to_account_info(),
-        token::Transfer {
-            from: ctx.accounts.market_token_account.to_account_info(),
-            to: ctx.accounts.user_token_account.to_account_info(),
-            authority: ctx.accounts.market_token_account.to_account_info(),
-        },
-        signer,
-    );
-
-    token::transfer(cpi_transfer_token_ctx, 1)?;
-
-    listing_account.close(seller_account)?;
+    listing_account.seller = ctx.accounts.buyer.key();
 
     Ok(())
 }
